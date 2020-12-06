@@ -1,0 +1,54 @@
+version: '3.7'
+
+services:
+  app-server:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    restart: always
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/gi
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 12345
+    networks:
+      - backend
+      - frontend
+
+  app-client:
+    build:
+      context: ./frontend/gi
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_BASE_URL: http://127.0.0.1:8081
+    ports:
+      - "3000:80"
+    restart: always
+    depends_on:
+      - app-server
+    networks:
+      - frontend
+
+  db:
+    image: "postgres"
+    container_name: "postgres"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=gi
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+volumes:
+  db-data:
+
+networks:
+  backend:
+  frontend: 
